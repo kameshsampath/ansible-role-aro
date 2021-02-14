@@ -1,0 +1,43 @@
+---
+- name: Create ARO Cluster
+  hosts: localhost
+  connection: local
+  
+  collections:
+    - community.kubernetes
+
+  vars_prompt:
+    # - name: kubeconfig
+    #   prompt: "Provide the full path to KUBECONFIG"
+    #   private: no
+    #   default: "{{ ansible_env.KUBECONFIG | default( lookup('env','HOME') + '/openshift/gcp/auth/kubeconfig') }}"
+
+    - name: azure_profile
+      prompt: "Azure profile to use(default: default)"
+      private: no
+      default: "default"
+
+    - name: aro_location
+      prompt: "Enter the Azure location to create the cluster (default: centralindia)"
+      private: no
+      default: "centralindia"
+
+    - name: aro_cluster_name
+      prompt: "Enter ARO cluster name"
+      private: no
+      default: "azr"
+
+    - name: openshift_pull_secret_file
+      prompt: "Enter the absolute path of OpenShift pull secret"
+      private: no
+      default: "{{ lookup('env','HOME') +'/openshift/pull-secret.json'}}"
+
+
+  environment:
+    AZURE_PROFILE: "{{ azure_profile }}"
+  #   K8S_AUTH_KUBECONFIG: "{{ kubeconfig }}"
+
+  
+  roles:
+     - kameshsampath.aro
+   # - kameshsampath.openshift_app_spices

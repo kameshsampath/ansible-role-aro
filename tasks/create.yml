@@ -1,0 +1,84 @@
+---
+
+- name: Create ARO Resource Group
+  azure_rm_resourcegroup:
+    name: "{{ aro_rg }}"
+    location: "{{ aro_location }}"
+    state: present
+  register: aro_rg_response
+
+
+- name: Create ARO Virtual Network
+  azure_rm_virtualnetwork:
+    resource_group: "{{ aro_rg }}"
+    name: "{{ aro_vnet }}"
+    address_prefixes: 
+     - "10.0.0.0/22"
+
+- name: Add ARO Master Subnet
+  azure_rm_subnet:
+    resource_group: "{{ aro_rg }}"
+    name: "{{ aro_master_subnet }}"
+    virtual_network_name: "{{ aro_vnet }}"
+    address_prefix: "10.0.0.0/23"
+    private_link_service_network_policies: Disabled
+    service_endpoints:
+      - service: Microsoft.ContainerRegistry
+  register: aro_master_subnet_response
+
+- name: Add ARO Worker Subnet
+  azure_rm_subnet:  
+    resource_group: "{{ aro_rg }}"
+    name: "{{ aro_worker_subnet }}"
+    address_prefix: "10.0.2.0/23"
+    virtual_network_name: "{{ aro_vnet }}"
+    service_endpoints:
+      - service: Microsoft.ContainerRegistry
+  register: aro_worker_subnet_response
+
+- name: Set ARO Cluster Properties
+  set_fact:
+    openshift_pull_secret: "{{ lookup('file', openshift_pull_secret_file) }}"
+    resource_group_id: "{{ aro_rg_response.state.id }}"
+    master_subnet_id: "{{ aro_master_subnet_response.state.id }}"
+    worker_subnet_id: "{{ aro_worker_subnet_response.state.id }}"
+
+- name: Create ARO Cluster
+  azure_rm_resource:
+    idempotency: yes
+    resource_group: "{{ aro_rg }}"
+    provider: RedHatOpenShift
+    resource_type: openshiftclusters
+    resource_name: "{{ aro_cluster_name }}"
+    api_version: "2020-04-30"
+    body:
+      location: "{{ aro_location }}"
+      properties: 
+        clusterProfile:
+          domain: "{{ aro_domain }}"
+          pullSecret: "{{ openshift_pull_secret | to_json }}"
+          resourceGroupId: "{{ resource_group_id }}"
+        consoleProfile: {}
+        servicePrincipalProfile:
+          clientId: "{{ lookup('ini',  'client_id section={{ azure_profile }}  file={{ ansible_env.HOME }}/.azure/credentials') }}"
+          clientSecret: "{{ lookup('ini',  'secret section={{ azure_profile }}  file={{ ansible_env.HOME }}/.azure/credentials') }}"
+        networkProfile:
+          podCidr: "10.128.0.0/14"
+          serviceCidr: "172.30.0.0/16"
+        masterProfile: 
+          subnetId: "{{  master_subnet_id }}"
+          vmSize: "Standard_D4s_v3"
+        workerProfiles: 
+         - name: "worker"
+           subnetId: "{{  worker_subnet_id }}"
+           diskSizeGB: 128
+           vmSize: "Standard_D8s_v3"
+           count: 3
+        apiserverProfile:
+          visibility: Public
+        ingressProfiles:
+         - name: default
+           visibility: Public
+  register: aro_create_response
+
+# TODO poll and wait for the cluster to be running

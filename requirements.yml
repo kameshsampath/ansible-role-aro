@@ -1,0 +1,10 @@
+---
+roles:
+  - name: kameshsampath.openshift_app_spices
+    src: https://github.com/kameshsampath/ansible-role-openshift-spices
+    version: master
+collections:
+  - name: community.kubernetes
+    version: 1.0.0
+  - name: azure.azcollection
+    version: 1.0.0

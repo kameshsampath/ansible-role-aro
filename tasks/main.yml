@@ -1,0 +1,10 @@
+---
+
+
+- name: Create Cluster 
+  include: create.yml
+  when: aro_create
+
+- name: Delete Cluster 
+  include: delete.yml
+  when: not aro_create

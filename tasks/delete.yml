@@ -1,0 +1,45 @@
+---
+
+- name: Delete ARO Cluster
+  azure_rm_resource:
+    method: DELETE
+    resource_group: "{{ aro_rg }}"
+    provider: RedHatOpenShift
+    resource_type: openshiftclusters
+    resource_name: "{{ aro_cluster_name }}"
+    api_version: "2020-04-30"
+ 
+- name: Delete ARO Master Subnet
+  azure_rm_subnet:
+    resource_group: "{{ aro_rg }}"
+    name: "{{ aro_master_subnet }}"
+    virtual_network_name: "{{ aro_vnet }}"
+    address_prefix: "10.0.0.0/23"
+    private_link_service_network_policies: Disabled
+    service_endpoints:
+      - service: Microsoft.ContainerRegistry
+    state: absent
+
+- name: Delete ARO Worker Subnet
+  azure_rm_subnet:
+    resource_group: "{{ aro_rg }}"
+    name: "{{ aro_worker_subnet }}"
+    address_prefix: "10.0.2.0/23"
+    virtual_network_name: "{{ aro_vnet }}"
+    service_endpoints:
+      - service: Microsoft.ContainerRegistry
+    state: absent
+
+- name: Delete ARO Virtual Network
+  azure_rm_virtualnetwork:
+    resource_group: "{{ aro_rg }}"
+    name: "{{ aro_vnet }}"
+    address_prefixes: 
+     - "10.0.0.0/22"
+    state: absent
+
+- name: Delete ARO Resource Group
+  azure_rm_resourcegroup:
+    name: "{{ aro_rg }}"
+    location: "{{ aro_location }}"
+    state: absent

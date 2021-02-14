@@ -1,0 +1,11 @@
+---
+ocp_version: 4.6.1
+aro_location: centralindia
+aro_rg: "aro-rg-{{ aro_location }}"
+aro_cluster_name: "azr"
+aro_domain: "{{ aro_cluster_name }}.kameshs.me"
+aro_vnet: "aro-vnet-{{ aro_cluster_name + '-'+ aro_rg }}"
+aro_master_subnet: "master-subnet-{{ aro_cluster_name + '-'+ aro_rg }}"
+aro_worker_subnet: "worker-subnet-{{ aro_cluster_name + '-'+ aro_rg }}"
+aro_create: True
+azure_profile: default
