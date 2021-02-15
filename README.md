@@ -14,7 +14,7 @@ Ansible to create/update/delete Azure Red Hat OpenShift clusters.
 
 ```shell
 pip3 install \
-  -r https://raw.githubusercontent.com/kameshsampath/kameshsampath.openshift_app_spices/master/requirements.txt
+  -r https://raw.githubusercontent.com/kameshsampath/ansible-role-openshift-spices/master/requirements.txt
 pip3 -r install -r https://raw.githubusercontent.com/ansible-collections/azure/dev/requirements-azure.txt
 ansible-galaxy role install kameshsampath.aro
 ansible-galaxy collection install community.kubernetes
